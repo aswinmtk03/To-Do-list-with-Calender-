@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow – Todo & Calendar</title>
+  <meta name="description" content="A beautiful to-do list with an integrated calendar to manage your tasks and schedule effortlessly." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Ambient background orbs -->
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="bg-orb orb3"></div>
+
+  <div class="app-shell">
+
+    <!-- ── SIDEBAR ─────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">✦</span>
+        <span class="brand-name">TaskFlow</span>
+      </div>
+
+      <nav class="nav-tabs">
+        <button class="nav-btn active" id="btn-tasks" onclick="switchTab('tasks')">
+          <span class="nav-icon">📋</span>Tasks
+        </button>
+        <button class="nav-btn" id="btn-calendar" onclick="switchTab('calendar')">
+          <span class="nav-icon">📅</span>Calendar
+        </button>
+      </nav>
+
+      <!-- Stats -->
+      <div class="stats-card">
+        <div class="stat">
+          <span class="stat-num" id="stat-total">0</span>
+          <span class="stat-label">Total</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="stat-done">0</span>
+          <span class="stat-label">Done</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="stat-pending">0</span>
+          <span class="stat-label">Pending</span>
+        </div>
+      </div>
+
+      <!-- Category filter -->
+      <div class="filter-section">
+        <p class="section-label">Filter by</p>
+        <div class="filter-buttons">
+          <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+          <button class="filter-btn" onclick="setFilter('work', this)">Work</button>
+          <button class="filter-btn" onclick="setFilter('personal', this)">Personal</button>
+          <button class="filter-btn" onclick="setFilter('health', this)">Health</button>
+          <button class="filter-btn" onclick="setFilter('other', this)">Other</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── MAIN CONTENT ───────────────────────── -->
+    <main class="content">
+
+      <!-- TASKS VIEW -->
+      <section class="view" id="view-tasks">
+        <div class="view-header">
+          <div>
+            <h1 class="view-title">My Tasks</h1>
+            <p class="view-sub" id="today-date-label"></p>
+          </div>
+          <button class="fab" id="add-btn" onclick="openModal()">+ New Task</button>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress-wrap">
+          <div class="progress-info">
+            <span>Progress</span>
+            <span id="progress-pct">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Task list -->
+        <div class="task-list" id="task-list"></div>
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">🎯</div>
+          <p>No tasks yet. Add your first task!</p>
+        </div>
+      </section>
+
+      <!-- CALENDAR VIEW -->
+      <section class="view hidden" id="view-calendar">
+        <div class="view-header">
+          <div>
+            <h1 class="view-title">Calendar</h1>
+            <p class="view-sub" id="cal-month-label"></p>
+          </div>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+            <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+
+        <div class="calendar-grid">
+          <div class="cal-head">Sun</div>
+          <div class="cal-head">Mon</div>
+          <div class="cal-head">Tue</div>
+          <div class="cal-head">Wed</div>
+          <div class="cal-head">Thu</div>
+          <div class="cal-head">Fri</div>
+          <div class="cal-head">Sat</div>
+        </div>
+        <div class="calendar-days" id="calendar-days"></div>
+
+        <!-- Selected day tasks -->
+        <div class="day-tasks" id="day-tasks">
+          <h3 class="day-tasks-title" id="day-tasks-title">Select a day to view tasks</h3>
+          <div id="day-task-list"></div>
+        </div>
+      </section>
+
+    </main>
+
+  </div><!-- /app-shell -->
+
+  <!-- ── ADD/EDIT TASK MODAL ───────────────────── -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">New Task</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <form id="task-form" onsubmit="saveTask(event)">
+        <div class="form-group">
+          <label class="form-label" for="task-title">Task Title *</label>
+          <input class="form-input" type="text" id="task-title" placeholder="What do you need to do?" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="task-desc">Description</label>
+          <textarea class="form-input form-textarea" id="task-desc" placeholder="Add details (optional)"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="task-date">Due Date</label>
+            <input class="form-input" type="date" id="task-date" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="task-priority">Priority</label>
+            <select class="form-input" id="task-priority">
+              <option value="low">🟢 Low</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="high">🔴 High</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <div class="category-picker">
+            <label class="cat-opt"><input type="radio" name="cat" value="work" /><span>💼 Work</span></label>
+            <label class="cat-opt"><input type="radio" name="cat" value="personal" checked /><span>🏠 Personal</span></label>
+            <label class="cat-opt"><input type="radio" name="cat" value="health" /><span>💪 Health</span></label>
+            <label class="cat-opt"><input type="radio" name="cat" value="other" /><span>🌟 Other</span></label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-save" id="save-btn">Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
